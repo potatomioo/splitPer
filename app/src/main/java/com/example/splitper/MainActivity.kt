@@ -1,6 +1,7 @@
 package com.example.splitper
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -67,13 +68,16 @@ class MainActivity : ComponentActivity() {
 
 }
 
+@Preview(showBackground = true)
 @Composable
 fun MyApp() {
     var Amount by remember {
         mutableStateOf("")
     }
     Column {
-
+        Calc(Amount = Amount,
+            amountchange = {Amount = it}
+        )
     }
 }
 
@@ -113,9 +117,9 @@ fun totalAmount(amount: Float = 0f) {
     }
 }
 
-@Preview(showBackground = true)
+
 @Composable
-fun Calc(Amount:String,amountchange:(String)->Unit,Count : Int) {
+fun Calc(Amount:String = "",amountchange:(String)->Unit = {},Count : Int = 1) {
     Surface(
         modifier = Modifier
             .padding(15.dp)
@@ -129,10 +133,7 @@ fun Calc(Amount:String,amountchange:(String)->Unit,Count : Int) {
         ) {
             OutlinedTextField(value = Amount,
                 onValueChange = {
-                                var newAmount by remember {
-                                    mutableStateOf(Amount)
-                                }
-                    amountchange(newAmount)
+                                amountchange(it)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
