@@ -3,6 +3,7 @@ package com.example.splitper
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,16 +13,19 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardElevation
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -29,7 +33,11 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -52,8 +60,128 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            
+            MyApp()
+
         }
     }
 
+}
+
+@Composable
+fun MyApp() {
+    var Amount by remember {
+        mutableStateOf("")
+    }
+    Column {
+
+    }
+}
+
+
+@Composable
+fun totalAmount(amount: Float = 0f) {
+    Surface(
+        modifier = Modifier
+            .padding(15.dp)
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        color = Purple40,
+        shadowElevation = 15.dp
+    ) {
+        Column(
+            modifier =Modifier
+                .padding(15.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(text = "Amount to pay",
+                style = TextStyle(
+                    color = Color.Black,
+                    fontWeight = FontWeight.Black,
+                    fontSize = 16.sp
+                )
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(text = "$$amount",
+                style = TextStyle(
+                    color = Color.Black,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Black
+                )
+            )
+        }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun Calc(Amount:String,amountchange:(String)->Unit,Count : Int) {
+    Surface(
+        modifier = Modifier
+            .padding(15.dp)
+            .fillMaxWidth(),
+        shape = RoundedCornerShape(10.dp),
+        shadowElevation = 10.dp,
+        color = MaterialTheme.colorScheme.background
+    ) {
+        Column(
+            verticalArrangement = Arrangement.Center
+        ) {
+            OutlinedTextField(value = Amount,
+                onValueChange = {
+                                var newAmount by remember {
+                                    mutableStateOf(Amount)
+                                }
+                    amountchange(newAmount)
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp)
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Row (
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(10.dp),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ){
+                Text(text = "Split",
+                    style = TextStyle(
+                        fontSize = 12.sp,
+                        fontWeight = FontWeight.Normal,
+                        color = Color.Black
+                    )
+                )
+                Spacer(modifier = Modifier.fillMaxWidth(0.5f))
+                customInAndOut(ImageVector = Icons.Filled.KeyboardArrowUp,{})
+                Spacer(modifier = Modifier.width(5.dp))
+                Text(text = "$Count",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Normal,
+                    color = Color.Black
+                )
+                Spacer(modifier = Modifier.width(5.dp))
+                customInAndOut(ImageVector = Icons.Filled.KeyboardArrowDown,{})
+            }
+        }
+    }
+}
+
+
+@Composable
+fun customInAndOut(ImageVector : ImageVector,onClick : () -> Unit) {
+    Card(
+        shape = CircleShape,
+        modifier = Modifier
+            .clickable {
+                onClick()
+            }
+    ) {
+        Icon(imageVector = ImageVector,
+            contentDescription = "NULL",
+            tint = Color.Black,
+
+        )
+    }
 }
