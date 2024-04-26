@@ -68,26 +68,23 @@ class MainActivity : ComponentActivity() {
 
 }
 
-@Preview(showBackground = true)
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun MyApp() {
-    var Amount by remember {
-        mutableStateOf("")
-    }
     Column {
-        Calc(Amount = Amount,
-            amountchange = {Amount = it}
-        )
+        totalAmount(amount = 0f)
+        Calc()
     }
 }
 
 
 @Composable
-fun totalAmount(amount: Float = 0f) {
+fun totalAmount(amount: Float) {
     Surface(
         modifier = Modifier
             .padding(15.dp)
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .height(150.dp),
         shape = RoundedCornerShape(10.dp),
         color = Purple40,
         shadowElevation = 15.dp
@@ -119,7 +116,7 @@ fun totalAmount(amount: Float = 0f) {
 
 
 @Composable
-fun Calc(Amount:String = "",amountchange:(String)->Unit = {},Count : Int = 1) {
+fun Calc() {
     Surface(
         modifier = Modifier
             .padding(15.dp)
@@ -131,9 +128,9 @@ fun Calc(Amount:String = "",amountchange:(String)->Unit = {},Count : Int = 1) {
         Column(
             verticalArrangement = Arrangement.Center
         ) {
-            OutlinedTextField(value = Amount,
+            OutlinedTextField(value = "",
                 onValueChange = {
-                                amountchange(it)
+
                 },
                 modifier = Modifier
                     .fillMaxWidth()
@@ -143,8 +140,8 @@ fun Calc(Amount:String = "",amountchange:(String)->Unit = {},Count : Int = 1) {
             Row (
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(10.dp),
-                horizontalArrangement = Arrangement.Center,
+                    .padding(20.dp),
+                horizontalArrangement = Arrangement.Start,
                 verticalAlignment = Alignment.CenterVertically
             ){
                 Text(text = "Split",
@@ -154,16 +151,19 @@ fun Calc(Amount:String = "",amountchange:(String)->Unit = {},Count : Int = 1) {
                         color = Color.Black
                     )
                 )
-                Spacer(modifier = Modifier.fillMaxWidth(0.5f))
+                Spacer(modifier = Modifier.fillMaxWidth(0.7f))
                 customInAndOut(ImageVector = Icons.Filled.KeyboardArrowUp,{})
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "$Count",
+                Text(text = "1",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Normal,
                     color = Color.Black
                 )
                 Spacer(modifier = Modifier.width(5.dp))
                 customInAndOut(ImageVector = Icons.Filled.KeyboardArrowDown,{})
+            }
+            Row {
+
             }
         }
     }
