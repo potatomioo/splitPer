@@ -1,7 +1,10 @@
+@file:OptIn(ExperimentalComposeUiApi::class)
+
 package com.example.splitper
 
 import android.os.Bundle
 import android.util.Log
+import android.widget.ToggleButton
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
@@ -25,11 +28,13 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardElevation
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Slider
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -42,6 +47,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
@@ -50,6 +56,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -62,7 +69,6 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             MyApp()
-
         }
     }
 
@@ -71,15 +77,40 @@ class MainActivity : ComponentActivity() {
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun MyApp() {
-    Column {
-        totalAmount(amount = 0f)
-        Calc()
+    var amount by remember {
+        mutableStateOf("")
     }
+    var counter by remember {
+        mutableStateOf(1)
+    }
+    var tipPer by remember {
+        mutableStateOf(0f)
+    }
+    var buttonchange by remember {
+        mutableStateOf(0)
+    }
+    Column {
+        TopBar()
+        totalAmount(amount,counter,tipPer,buttonchange)
+        Calc(amount,{amount=it},counter,{counter++},{if(counter>1)counter--},tipPer,{tipPer = it},buttonchange,{buttonchange++})
+    }
+}
+
+@Composable
+fun TopBar() {
+    Text(text = "SplitPer",
+        style = TextStyle(
+            fontSize = 20.sp,
+            fontWeight = FontWeight.Bold,
+            color = Color.Black
+        ),
+        modifier = Modifier.padding(horizontal =20.dp, vertical = 2.dp)
+    )
 }
 
 
 @Composable
-fun totalAmount(amount: Float) {
+fun totalAmount(total: String,counter: Int,tipPer: Float,buttonchange: Int) {
     Surface(
         modifier = Modifier
             .padding(15.dp)
@@ -103,7 +134,12 @@ fun totalAmount(amount: Float) {
                 )
             )
             Spacer(modifier = Modifier.height(10.dp))
-            Text(text = "$$amount",
+            Text(text =
+            if(buttonchange==0) {
+                "$0"
+            }else{
+                "$${totalcalci(total,counter,tipPer)}"
+            },
                 style = TextStyle(
                     color = Color.Black,
                     fontSize = 20.sp,
@@ -116,7 +152,18 @@ fun totalAmount(amount: Float) {
 
 
 @Composable
-fun Calc() {
+fun Calc(
+    amount : String,
+    changefun:(String)->Unit,
+    counter : Int,
+    inc:()->Unit,
+    dec:()->Unit,
+    tipPer : Float,
+    tipPercentage : (Float)->Unit,
+    buttonchange : Int,
+    onclick : () -> Unit
+) {
+    val localKeyboard = LocalSoftwareKeyboardController.current
     Surface(
         modifier = Modifier
             .padding(15.dp)
@@ -128,13 +175,14 @@ fun Calc() {
         Column(
             verticalArrangement = Arrangement.Center
         ) {
-            OutlinedTextField(value = "",
+            OutlinedTextField(value = amount,
                 onValueChange = {
-
+                                changefun(it)
                 },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(10.dp)
+                    .padding(10.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number, autoCorrect = true, imeAction = ImeAction.Done),
             )
             Spacer(modifier = Modifier.height(10.dp))
             Row (
@@ -152,18 +200,59 @@ fun Calc() {
                     )
                 )
                 Spacer(modifier = Modifier.fillMaxWidth(0.7f))
-                customInAndOut(ImageVector = Icons.Filled.KeyboardArrowUp,{})
+                customInAndOut(ImageVector = Icons.Filled.KeyboardArrowUp,inc)
                 Spacer(modifier = Modifier.width(5.dp))
-                Text(text = "1",
+                Text(text = "$counter",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Normal,
                     color = Color.Black
                 )
                 Spacer(modifier = Modifier.width(5.dp))
-                customInAndOut(ImageVector = Icons.Filled.KeyboardArrowDown,{})
+                customInAndOut(ImageVector = Icons.Filled.KeyboardArrowDown,dec)
             }
-            Row {
-
+            Spacer(modifier = Modifier.height(10.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(20.dp),
+                horizontalArrangement = Arrangement.Start,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(text = "Tip", style = MaterialTheme.typography.bodyMedium)
+                Spacer(modifier = Modifier.fillMaxWidth(0.75f))
+                Text(text = "$ ${getTipAmount(amount,tipPer)}", style = MaterialTheme.typography.bodyMedium)
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            Text(text = "$tipPer",
+                style = MaterialTheme.typography.bodyMedium,
+                modifier = Modifier
+                    .padding(10.dp)
+                    .fillMaxWidth(),
+                textAlign = TextAlign.Center
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Slider(value = tipPer,
+                onValueChange = {tipPercentage(it)},
+                valueRange = 0f..100f, steps = 5,
+                modifier = Modifier
+                    .padding(20.dp)
+            )
+            Spacer(modifier = Modifier.height(10.dp))
+            Button(onClick = {onclick()},
+                modifier = Modifier
+                    .padding(vertical = 20.dp, horizontal = 10.dp)
+                    .align(Alignment.CenterHorizontally)
+            )
+            {
+                Text(text = "Calculate",
+                    style = TextStyle(
+                        fontWeight = FontWeight.Bold,
+                        color = Color.Black,
+                        fontSize = 15.sp
+                        ),
+                    modifier = Modifier
+                        .padding(5.dp)
+                )
             }
         }
     }
@@ -175,6 +264,7 @@ fun customInAndOut(ImageVector : ImageVector,onClick : () -> Unit) {
     Card(
         shape = CircleShape,
         modifier = Modifier
+            .clip(CircleShape)
             .clickable {
                 onClick()
             }
@@ -184,5 +274,29 @@ fun customInAndOut(ImageVector : ImageVector,onClick : () -> Unit) {
             tint = Color.Black,
 
         )
+    }
+}
+
+
+fun getTipAmount(amount: String,tipPer: Float):String{
+    return when{
+        amount.isEmpty()->{
+            "0"
+        }
+        else->{
+            val floatamount = amount.toFloat()
+            (floatamount*tipPer.div(100)).toString()
+        }
+    }
+}
+
+fun totalcalci(amount: String,counter: Int,tipPer: Float):String{
+    return when{
+        amount.isEmpty()-> {
+            "0"
+        }
+        else->{
+            ((amount.toFloat()+tipPer).div(counter)).toString()
+        }
     }
 }
