@@ -7,6 +7,8 @@ import android.util.Log
 import android.widget.ToggleButton
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -47,8 +49,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.Placeholder
@@ -74,7 +79,7 @@ class MainActivity : ComponentActivity() {
 
 }
 
-@Preview(showBackground = true, showSystemUi = true)
+    @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun MyApp() {
     var amount by remember {
@@ -89,44 +94,89 @@ fun MyApp() {
     var buttonchange by remember {
         mutableStateOf(0)
     }
+    var isenabled by remember {
+        mutableStateOf(false)
+    }
+    var imagevector by remember {
+        mutableStateOf(Icons.Filled.KeyboardArrowDown)
+    }
     Column {
-        TopBar()
-        totalAmount(amount,counter,tipPer,buttonchange)
+        TopBar(isenabled,{isenabled = !isenabled})
+        totalAmount(amount,counter,tipPer,buttonchange,isenabled)
         Calc(amount,{amount=it},counter,{counter++},{if(counter>1)counter--},tipPer,{tipPer = it},buttonchange,{buttonchange++})
     }
 }
 
 @Composable
-fun TopBar() {
-    Text(text = "SplitPer",
-        style = TextStyle(
-            fontSize = 20.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
-        ),
-        modifier = Modifier.padding(horizontal =20.dp, vertical = 2.dp)
-    )
+fun TopBar(
+    isenabled : Boolean = false,
+    onclick: () -> Unit,
+) {
+    Row {
+        Text(
+            text = "SplitPer",
+            style = TextStyle(
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = Color.Black
+            ),
+            modifier = Modifier.padding(horizontal = 20.dp, vertical = 2.dp)
+        )
+        Spacer(modifier = Modifier.fillMaxWidth(0.8f))
+        Icon(
+            imageVector = Icons.Filled.KeyboardArrowDown,
+            contentDescription = "down",
+            modifier = Modifier
+
+                .clip(CircleShape)
+                .clickable { onclick() }
+                .scale(1f,if(isenabled) -1f else 1f)
+        )
+    }
 }
 
 
 @Composable
-fun totalAmount(total: String,counter: Int,tipPer: Float,buttonchange: Int) {
+fun totalAmount(
+    total: String,
+    counter: Int,
+    tipPer: Float,
+    buttonchange: Int,
+    isenabled: Boolean = false
+) {
+    if(isenabled == true){
+        val alpha = animateFloatAsState(
+            targetValue = if(isenabled) 1f else 0f,
+            animationSpec = tween(
+                durationMillis = 300
+            )
+        )
+        val rotateX = animateFloatAsState(
+            targetValue = if(isenabled) 1f else -90f,
+            animationSpec = tween(
+                durationMillis = 300
+            )
+        )
     Surface(
         modifier = Modifier
             .padding(15.dp)
             .fillMaxWidth()
-            .height(150.dp),
+            .height(150.dp)
+            .graphicsLayer { rotationX = rotateX.value }
+            .alpha(alpha.value)
+        ,
         shape = RoundedCornerShape(10.dp),
         color = Purple40,
         shadowElevation = 15.dp
     ) {
         Column(
-            modifier =Modifier
+            modifier = Modifier
                 .padding(15.dp),
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(text = "Amount to pay",
+            Text(
+                text = "Amount to pay",
                 style = TextStyle(
                     color = Color.Black,
                     fontWeight = FontWeight.Black,
@@ -134,12 +184,13 @@ fun totalAmount(total: String,counter: Int,tipPer: Float,buttonchange: Int) {
                 )
             )
             Spacer(modifier = Modifier.height(10.dp))
-            Text(text =
-            if(buttonchange==0) {
-                "$0"
-            }else{
-                "$${totalcalci(total,counter,tipPer)}"
-            },
+            Text(
+                text =
+                if (buttonchange == 0) {
+                    "$0"
+                } else {
+                    "$${totalcalci(total, counter, tipPer)}"
+                },
                 style = TextStyle(
                     color = Color.Black,
                     fontSize = 20.sp,
@@ -147,6 +198,7 @@ fun totalAmount(total: String,counter: Int,tipPer: Float,buttonchange: Int) {
                 )
             )
         }
+    }
     }
 }
 
