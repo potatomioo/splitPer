@@ -10,26 +10,35 @@ import androidx.activity.compose.setContent
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.layout.wrapContentWidth
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Person
+import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardElevation
@@ -65,7 +74,11 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import com.example.splitper.ui.theme.Purple40
+import com.example.splitper.ui.theme.PurpleGrey40
 import com.example.splitper.ui.theme.SplitPerTheme
 import java.util.Vector
 
@@ -73,7 +86,7 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
-            MyApp()
+            BottomNavBar()
         }
     }
 
@@ -100,11 +113,20 @@ fun MyApp() {
     var imagevector by remember {
         mutableStateOf(Icons.Filled.KeyboardArrowDown)
     }
-    Column {
-        TopBar(isenabled,{isenabled = !isenabled})
-        totalAmount(amount,counter,tipPer,buttonchange,isenabled)
-        Calc(amount,{amount=it},counter,{counter++},{if(counter>1)counter--},tipPer,{tipPer = it},buttonchange,{buttonchange++})
-    }
+    Column(){
+            TopBar(isenabled, { isenabled = !isenabled })
+            totalAmount(amount, counter, tipPer, buttonchange, isenabled)
+            Calc(
+                amount,
+                { amount = it },
+                counter,
+                { counter++ },
+                { if (counter > 1) counter-- },
+                tipPer,
+                { tipPer = it },
+                buttonchange,
+                { buttonchange++ })
+        }
 }
 
 @Composable
@@ -130,7 +152,7 @@ fun TopBar(
 
                 .clip(CircleShape)
                 .clickable { onclick() }
-                .scale(1f,if(isenabled) -1f else 1f)
+                .scale(1f, if (isenabled) -1f else 1f)
         )
     }
 }
@@ -145,26 +167,11 @@ fun totalAmount(
     isenabled: Boolean = false
 ) {
     if(isenabled == true){
-        val alpha = animateFloatAsState(
-            targetValue = if(isenabled) 1f else 0f,
-            animationSpec = tween(
-                durationMillis = 300
-            )
-        )
-        val rotateX = animateFloatAsState(
-            targetValue = if(isenabled) 1f else -90f,
-            animationSpec = tween(
-                durationMillis = 300
-            )
-        )
     Surface(
         modifier = Modifier
             .padding(15.dp)
             .fillMaxWidth()
-            .height(150.dp)
-            .graphicsLayer { rotationX = rotateX.value }
-            .alpha(alpha.value)
-        ,
+            .height(150.dp),
         shape = RoundedCornerShape(10.dp),
         color = Purple40,
         shadowElevation = 15.dp
@@ -178,7 +185,7 @@ fun totalAmount(
             Text(
                 text = "Amount to pay",
                 style = TextStyle(
-                    color = Color.Black,
+                    color = Color.White,
                     fontWeight = FontWeight.Black,
                     fontSize = 16.sp
                 )
@@ -192,7 +199,7 @@ fun totalAmount(
                     "$${totalcalci(total, counter, tipPer)}"
                 },
                 style = TextStyle(
-                    color = Color.Black,
+                    color = Color.White,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Black
                 )
@@ -299,7 +306,7 @@ fun Calc(
                 Text(text = "Calculate",
                     style = TextStyle(
                         fontWeight = FontWeight.Bold,
-                        color = Color.Black,
+                        color = Color.White,
                         fontSize = 15.sp
                         ),
                     modifier = Modifier
@@ -350,5 +357,105 @@ fun totalcalci(amount: String,counter: Int,tipPer: Float):String{
         else->{
             ((amount.toFloat()+tipPer).div(counter)).toString()
         }
+    }
+}
+
+@Preview(showBackground = true)
+@Composable
+fun BottomNavBar() {
+    var navController = rememberNavController()
+    NavHost(navController = navController, startDestination = "calculator"){
+        composable("calculator"){
+            calculate()
+        }
+        composable("Profile"){
+            Profile()
+        }
+        composable("History"){
+            History()
+        }
+    }
+    var changecolor by remember {
+        mutableStateOf(false)
+    }
+    Box (
+        modifier = Modifier
+            .fillMaxSize(),
+        contentAlignment = Alignment.BottomCenter
+    ){
+        Row (verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceEvenly
+            ,modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp)
+                .background(PurpleGrey40)
+        ){
+            NavBarItem(changecolor,"calculate",Icons.Filled.AddCircle,{navController.navigate("calculator")},{changecolor=true})
+            NavBarItem(changecolor,"History",Icons.Filled.Delete,{navController.navigate("History")},{changecolor=true})
+            NavBarItem(changecolor,"Profile",Icons.Filled.Person,{navController.navigate("Profile")},{changecolor=true})
+        }
+    }
+}
+
+
+@Preview(showBackground = true)
+@Composable
+fun NavBarItem(
+    changeColor:Boolean,
+    Name: String,
+    Icon : ImageVector,
+    click : () ->Unit,
+    change:() ->Unit
+) {
+    Box (contentAlignment = Alignment.Center,
+        modifier = Modifier
+            .size(100.dp)
+            .clip(CircleShape)
+            .clickable { change() }
+            .clickable { click() }
+    ) {
+        Column(
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                imageVector = Icon, contentDescription = "filled",
+                modifier = Modifier
+                    .size(25.dp),
+                tint = if (changeColor == true) Color.Green else Color.White
+            )
+            Text(
+                text = Name,
+                style = TextStyle(
+                    fontWeight = FontWeight.Normal,
+                    fontSize = 10.sp,
+                    color = Color.White
+                )
+            )
+        }
+    }
+}
+
+@Composable
+fun calculate() {
+    MyApp()
+}
+
+@Composable
+fun Profile() {
+    Box(modifier = Modifier
+        .fillMaxSize()
+    ){
+        Text(text = "Profile")
+    }
+
+}
+
+@Composable
+fun History() {
+    Box(modifier = Modifier
+        .fillMaxSize()
+    ){
+        Text(text = "History")
     }
 }
